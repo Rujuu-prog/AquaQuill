@@ -1,0 +1,11 @@
+.full-screen-editor {
+  width: 100vw;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.full-screen-content{
+  flex: 1;
+  overflow: auto;
+}
