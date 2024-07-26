@@ -25,9 +25,9 @@ export const openFile = async (win: BrowserWindow) => {
           console.log(`Error reading file: ${err}`)
           return
         }
-
+        console.log(data)
         // レンダラープロセスへファイルのフルパスとファイルの中身を送信
-        win.webContents.send('menu-open', filePath, data)
+        win.webContents.send('file-open', filePath, data)
       })
     })
     .catch((err) => console.log(`Error: ${err}`))

@@ -1,11 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import TabsContainer from '../tab/TabsContainer'
 import { v4 as uuidv4 } from 'uuid'
+
+// util
+import markdownToHtml from '../../utils/markdownToHtml'
+import htmlToMarkdown from '../../utils/htmlToMarkdown'
+import extractFileName from '../../utils/ExtractFileName'
 
 interface Tab {
   value: string
   label: string
   content: string
+  filePath?: string
 }
 
 export default function Memo(): JSX.Element {
@@ -40,9 +46,16 @@ export default function Memo(): JSX.Element {
     })
   }
 
-  const addTab = (): void => {
+  const addTab = (filePath?: string, content: string = ''): void => {
+    if (filePath && typeof filePath !== 'string') {
+      // filePathがSyntheticBaseEventの場合はundefinedにする
+      filePath = undefined
+    }
+    filePath = extractFileName(filePath || '')
     const newTab = createNewTab()
-    setTabs((currentTabs) => [...currentTabs, newTab])
+    newTab.label = filePath || newTab.label
+    newTab.content = content
+    setTabs([...tabs, newTab])
     setActiveTab(newTab.value)
   }
 
@@ -52,14 +65,48 @@ export default function Memo(): JSX.Element {
     )
   }
 
+  const saveMemo = async (): Promise<void> => {
+    const currentPane = tabs.find((tab) => tab.value === activeTab)
+    if (currentPane) {
+      const markdownContent = htmlToMarkdown(currentPane.content)
+      const savedFilePath = await window.electronAPI.saveFile(markdownContent, currentPane.filePath)
+      if (savedFilePath) {
+        currentPane.filePath = savedFilePath
+        currentPane.label = extractFileName(savedFilePath) || currentPane.label
+      }
+    }
+  }
+
+  const handleFileOpen = (_e: Electron.IpcRendererEvent, filePath: string, data: string): void => {
+    const htmlContent = markdownToHtml(data)
+    addTab(filePath, htmlContent)
+  }
+
+  useEffect(() => {
+    // Electron APIリスナーの設定
+    window.electronAPI.onSaveRequest(saveMemo)
+    window.electronAPI.onNewTabRequested(() => addTab())
+    window.electronAPI.onFileOpen(handleFileOpen)
+
+    // クリーンアップ
+    return (): void => {
+      console.log('cleanup')
+      window.electronAPI.removeSaveRequestListener(saveMemo)
+      window.electronAPI.removeNewTabRequestListener(() => addTab())
+      window.electronAPI.removeFileOpenListener(handleFileOpen)
+    }
+  }, [saveMemo])
+
   return (
-    <TabsContainer
-      tabs={tabs}
-      activeTab={activeTab}
-      setActiveTab={setActiveTab}
-      removeTab={removeTab}
-      addTab={addTab}
-      updateTabContent={updateTabContent}
-    />
+    <div>
+      <TabsContainer
+        tabs={tabs}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        removeTab={removeTab}
+        addTab={addTab}
+        updateTabContent={updateTabContent}
+      />
+    </div>
   )
 }

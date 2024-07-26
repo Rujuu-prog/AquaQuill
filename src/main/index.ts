@@ -39,7 +39,7 @@ function createWindow(): void {
   Menu.setApplicationMenu(createMenu(mainWindow))
 }
 
-ipcMain.handle('open-file-dialog', async (event) => {
+ipcMain.handle('file-open', async (event) => {
   const win = BrowserWindow.getFocusedWindow()
   if (win) {
     const { filePaths } = await dialog.showOpenDialog(win, {
