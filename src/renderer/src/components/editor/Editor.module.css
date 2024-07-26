@@ -5,7 +5,17 @@
   flex-direction: column;
 }
 
-.full-screen-content{
-  flex: 1;
-  overflow: auto;
+.viewport > .body {
+  height: 100%;
+}
+
+.root {
+  height: 100%;
+}
+
+.content, .typographyStylesProvider {
+  & > div{
+    height: 100%;
+  }
+  height: 100%;
 }

@@ -2,7 +2,6 @@ import '@mantine/tiptap/styles.css'
 import classes from './Editor.module.css'
 
 import { useEditor, BubbleMenu, FloatingMenu } from '@tiptap/react'
-import { ScrollArea } from '@mantine/core'
 import { RichTextEditor, Link, getTaskListExtension } from '@mantine/tiptap'
 import { Color } from '@tiptap/extension-color'
 import TextStyle from '@tiptap/extension-text-style'
@@ -43,7 +42,7 @@ export default function Editor({ tab, updateTabContent }: EditorProps): JSX.Elem
       Subscript,
       Highlight,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Placeholder.configure({ placeholder: 'New memo!' }),
+      Placeholder.configure({ placeholder: '🌊 Start your journey...' }),
       Color,
       TextStyle,
       CodeBlockLowlight.configure({ lowlight }),
@@ -63,7 +62,7 @@ export default function Editor({ tab, updateTabContent }: EditorProps): JSX.Elem
   })
 
   return (
-    <RichTextEditor editor={editor} className={classes.fullScreenEditor}>
+    <RichTextEditor editor={editor} classNames={classes}>
       <RichTextEditor.Toolbar sticky stickyOffset={0}>
         <RichTextEditor.ControlsGroup>
           <RichTextEditor.Bold />
@@ -164,9 +163,7 @@ export default function Editor({ tab, updateTabContent }: EditorProps): JSX.Elem
         </FloatingMenu>
       )}
 
-      <ScrollArea h={"78vh"} offsetScrollbars scrollbarSize={6} scrollHideDelay={2500}>
-        <RichTextEditor.Content className={classes.fullScreenContent} />
-      </ScrollArea>
+      <RichTextEditor.Content />
     </RichTextEditor>
   )
 }

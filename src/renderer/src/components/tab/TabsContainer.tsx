@@ -25,6 +25,7 @@ export default function TabsContainer({
       variant="outline"
       value={activeTab}
       onChange={(value) => setActiveTab(value)}
+      h={"100vh"}
     >
       <TabList tabs={tabs} activeTab={activeTab} removeTab={removeTab} addTab={addTab} />
       <TabPanel tabs={tabs} updateTabContent={updateTabContent} />

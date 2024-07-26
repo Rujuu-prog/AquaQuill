@@ -12,7 +12,7 @@ export default function TabList({ tabs, activeTab, removeTab, addTab }: TabListP
   const iconStyle = { width: rem(12), height: rem(12) }
 
   return (
-    <Tabs.List>
+    <Tabs.List style={{ position: 'sticky', top: 0 }}>
       {tabs.map((tab) => (
         <Tabs.Tab
           key={tab.value}
