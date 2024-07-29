@@ -49,24 +49,30 @@ export default function Memo(): JSX.Element {
     [tabs]
   )
 
-  const addTab = useCallback((filePath?: string, content: string = ''): void => {
-    if (filePath && typeof filePath !== 'string') {
-      // filePathがSyntheticBaseEventの場合はundefinedにする
-      filePath = undefined
-    }
-    filePath = extractFileName(filePath || '')
-    const newTab = createNewTab()
-    newTab.label = filePath || newTab.label
-    newTab.content = content
-    setTabs((prevTabs) => [...prevTabs, newTab])
-    setActiveTab(newTab.value)
-  }, [tabs])
+  const addTab = useCallback(
+    (filePath?: string, content: string = ''): void => {
+      if (filePath && typeof filePath !== 'string') {
+        // filePathがSyntheticBaseEventの場合はundefinedにする
+        filePath = undefined
+      }
+      filePath = extractFileName(filePath || '')
+      const newTab = createNewTab()
+      newTab.label = filePath || newTab.label
+      newTab.content = content
+      setTabs((prevTabs) => [...prevTabs, newTab])
+      setActiveTab(newTab.value)
+    },
+    [tabs]
+  )
 
-  const updateTabContent = useCallback((tabValue: string, content: string): void => {
-    setTabs((currentTabs) =>
-      currentTabs.map((tab) => (tab.value === tabValue ? { ...tab, content } : tab))
-    )
-  }, [tabs])
+  const updateTabContent = useCallback(
+    (tabValue: string, content: string): void => {
+      setTabs((currentTabs) =>
+        currentTabs.map((tab) => (tab.value === tabValue ? { ...tab, content } : tab))
+      )
+    },
+    [tabs]
+  )
 
   const saveMemo = useCallback(async (): Promise<void> => {
     const currentPane = tabs.find((tab) => tab.value === activeTab)
