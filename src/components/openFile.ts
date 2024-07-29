@@ -1,6 +1,6 @@
 // Copyright (c) 2024 Rujuu
 // This software is released under the MIT License, see LICENSE.
-import { Menu, BrowserWindow, MenuItemConstructorOptions, dialog } from 'electron'
+import { BrowserWindow, dialog } from 'electron'
 import * as fs from 'fs'
 
 export const openFile = async (win: BrowserWindow) => {

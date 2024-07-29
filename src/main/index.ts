@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { createMenu } from '../components/menu'
+import { saveFile } from '../components/saveFile'
 
 function createWindow(): void {
   // Create the browser window.
@@ -38,22 +39,6 @@ function createWindow(): void {
   // アプリケーションメニューへ "menu" を適用する
   Menu.setApplicationMenu(createMenu(mainWindow))
 }
-
-ipcMain.handle('file-open', async (event) => {
-  const win = BrowserWindow.getFocusedWindow()
-  if (win) {
-    const { filePaths } = await dialog.showOpenDialog(win, {
-      properties: ['openFile', 'showHiddenFiles'],
-      filters: [
-        {
-          name: 'テキストファイル',
-          extensions: ['txt', 'text', 'md', 'markdown']
-        }
-      ]
-    })
-    return filePaths[0] // 選択された最初のファイルパスを返す
-  }
-})
 
 ipcMain.handle('save-file', async (event, data, filePath) => {
   const win = BrowserWindow.getFocusedWindow()
