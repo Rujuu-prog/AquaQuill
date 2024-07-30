@@ -67,15 +67,11 @@ export default function Memo(): JSX.Element {
 
   const updateTabContent = useCallback(
     (tabValue: string, content: string, filePath?: string, label?: string): void => {
-      if (!label) {
-        label = 'New Memo'
-      }
-      if (!filePath) {
-        filePath = undefined
-      }
       setTabs((currentTabs) =>
         currentTabs.map((tab) =>
-          tab.value === tabValue ? { ...tab, content, label, filePath } : tab
+          tab.value === tabValue
+            ? { ...tab, content, label: label ?? tab.label, filePath: filePath ?? tab.filePath }
+            : tab
         )
       )
     },
