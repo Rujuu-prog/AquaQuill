@@ -1,4 +1,4 @@
-import { app, Menu, shell, BrowserWindow, ipcMain, dialog } from 'electron'
+import { app, Menu, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -40,7 +40,7 @@ function createWindow(): void {
   Menu.setApplicationMenu(createMenu(mainWindow))
 }
 
-ipcMain.handle('save-file', async (event, data, filePath) => {
+ipcMain.handle('save-file', async (_event, data, filePath) => {
   const win = BrowserWindow.getFocusedWindow()
   if (!win) return
   return await saveFile(win, data, filePath)
