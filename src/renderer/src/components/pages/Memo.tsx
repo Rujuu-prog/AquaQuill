@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import TabsContainer from '../tab/TabsContainer'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -15,18 +15,27 @@ interface Tab {
 }
 
 export default function Memo(): JSX.Element {
-  const initialTabs: Tab[] = [
-    { value: uuidv4(), label: 'Memo 1', content: '' },
-    { value: uuidv4(), label: 'Memo 2', content: '' }
-  ]
+  const initialTabs: Tab[] = [{ value: uuidv4(), label: 'New Memo', content: '' }]
 
   const [tabs, setTabs] = useState(initialTabs)
   const [activeTab, setActiveTab] = useState<string | null>(tabs[0].value)
+  const tabsRef = useRef(tabs)
+  const activeTabRef = useRef(activeTab)
+
+  // TODO: useEffectとuseRefを使わないでtabsを監視する方法を考える
+  useEffect(() => {
+    tabsRef.current = tabs
+  }, [tabs])
+
+  useEffect(() => {
+    activeTabRef.current = activeTab
+  }, [activeTab])
 
   const createNewTab = (): Tab => ({
     value: uuidv4(),
-    label: `New Memo`,
-    content: ''
+    label: 'New Memo',
+    content: '',
+    filePath: undefined
   })
 
   const removeTab = useCallback(
@@ -46,65 +55,61 @@ export default function Memo(): JSX.Element {
         return newTabs
       })
     },
-    [tabs]
+    [activeTab]
   )
 
-  const addTab = useCallback(
-    (filePath?: string, content: string = ''): void => {
-      if (filePath && typeof filePath !== 'string') {
-        // filePathがSyntheticBaseEventの場合はundefinedにする
-        filePath = undefined
-      }
-      filePath = extractFileName(filePath || '')
-      const newTab = createNewTab()
-      newTab.label = filePath || newTab.label
-      newTab.content = content
-      setTabs((prevTabs) => [...prevTabs, newTab])
-      setActiveTab(newTab.value)
-    },
-    [tabs]
-  )
+  const addTab = useCallback((filePath?: string, content: string = ''): void => {
+    if (filePath && typeof filePath !== 'string') {
+      // filePathがSyntheticBaseEventの場合はundefinedにする
+      filePath = undefined
+    }
+    const newTab = createNewTab()
+    newTab.label = extractFileName(filePath || '') || newTab.label
+    newTab.content = content
+    newTab.filePath = filePath
+    setTabs((prevTabs) => [...prevTabs, newTab])
+    setActiveTab(newTab.value)
+  }, [])
 
   const updateTabContent = useCallback(
-    (tabValue: string, content: string): void => {
+    (tabValue: string, content: string, filePath?: string, label?: string): void => {
       setTabs((currentTabs) =>
-        currentTabs.map((tab) => (tab.value === tabValue ? { ...tab, content } : tab))
+        currentTabs.map((tab) =>
+          tab.value === tabValue
+            ? { ...tab, content, label: label ?? tab.label, filePath: filePath ?? tab.filePath }
+            : tab
+        )
       )
     },
-    [tabs]
+    []
   )
 
   const saveMemo = useCallback(async (): Promise<void> => {
-    const currentPane = tabs.find((tab) => tab.value === activeTab)
+    const currentActiveTab = activeTabRef.current
+    const currentPane = tabsRef.current.find((tab) => tab.value === currentActiveTab)
     if (currentPane) {
       const markdownContent = htmlToMarkdown(currentPane.content)
       const savedFilePath = await window.electronAPI.saveFile(markdownContent, currentPane.filePath)
       if (savedFilePath) {
-        setTabs((currentTabs) =>
-          currentTabs.map((tab) =>
-            tab.value === currentPane.value
-              ? {
-                  ...tab,
-                  filePath: savedFilePath,
-                  label: extractFileName(savedFilePath) || tab.label
-                }
-              : tab
-          )
+        updateTabContent(
+          currentPane.value,
+          currentPane.content,
+          savedFilePath,
+          extractFileName(savedFilePath)
         )
       }
     }
-  }, [tabs, activeTab])
+  }, [])
 
   const handleFileOpen = useCallback(
     (_e: Electron.IpcRendererEvent, filePath: string, data: string): void => {
       const htmlContent = markdownToHtml(data)
       addTab(filePath, htmlContent)
     },
-    [tabs, addTab]
+    [addTab]
   )
 
   useEffect(() => {
-    // Electron APIリスナーの設定
     const handleSaveRequest = () => {
       saveMemo()
     }
@@ -125,13 +130,12 @@ export default function Memo(): JSX.Element {
     window.electronAPI.onNewTabRequested(handleNewTabRequest)
     window.electronAPI.onFileOpen(handleFileOpenRequest)
 
-    // クリーンアップ
     return (): void => {
       window.electronAPI.removeSaveRequestListener(handleSaveRequest)
       window.electronAPI.removeNewTabRequestListener(handleNewTabRequest)
       window.electronAPI.removeFileOpenListener(handleFileOpenRequest)
     }
-  }, [])
+  }, [addTab, handleFileOpen, saveMemo])
 
   return (
     <div>

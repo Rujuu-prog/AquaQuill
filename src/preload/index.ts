@@ -12,9 +12,8 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
     contextBridge.exposeInMainWorld('electronAPI', {
-      saveFile: async (data, filePath) => {
-        const result = await ipcRenderer.invoke('save-file', data, filePath)
-        return result
+      saveFile: async (data, filePath: string | undefined) => {
+        return await ipcRenderer.invoke('save-file', data, filePath)
       },
       onSaveRequest: (callback) => ipcRenderer.on('save-request', callback),
       onFileSaved: (callback) => ipcRenderer.on('file-saved', callback),
