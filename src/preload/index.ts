@@ -12,7 +12,7 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
     contextBridge.exposeInMainWorld('electronAPI', {
-      saveFile: async (data, filePath) => {
+      saveFile: async (data, filePath: string | undefined) => {
         return await ipcRenderer.invoke('save-file', data, filePath)
       },
       onSaveRequest: (callback) => ipcRenderer.on('save-request', callback),

@@ -40,7 +40,7 @@ function createWindow(): void {
   Menu.setApplicationMenu(createMenu(mainWindow))
 }
 
-ipcMain.handle('save-file', async (_event, data, filePath) => {
+ipcMain.handle('save-file', async (_event, data, filePath: string | undefined) => {
   const win = BrowserWindow.getFocusedWindow()
   if (!win) return
   return await saveFile(win, data, filePath)

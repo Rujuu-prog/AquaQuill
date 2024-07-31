@@ -20,15 +20,20 @@ export default function Memo(): JSX.Element {
   const [tabs, setTabs] = useState(initialTabs)
   const [activeTab, setActiveTab] = useState<string | null>(tabs[0].value)
   const tabsRef = useRef(tabs)
+  const activeTabRef = useRef(activeTab)
 
   // TODO: useEffectとuseRefを使わないでtabsを監視する方法を考える
   useEffect(() => {
     tabsRef.current = tabs
   }, [tabs])
 
+  useEffect(() => {
+    activeTabRef.current = activeTab
+  }, [activeTab])
+
   const createNewTab = (): Tab => ({
     value: uuidv4(),
-    label: `New Memo`,
+    label: 'New Memo',
     content: '',
     filePath: undefined
   })
@@ -55,12 +60,13 @@ export default function Memo(): JSX.Element {
 
   const addTab = useCallback((filePath?: string, content: string = ''): void => {
     if (filePath && typeof filePath !== 'string') {
+      // filePathがSyntheticBaseEventの場合はundefinedにする
       filePath = undefined
     }
-    filePath = extractFileName(filePath || '')
     const newTab = createNewTab()
-    newTab.label = filePath || newTab.label
+    newTab.label = extractFileName(filePath || '') || newTab.label
     newTab.content = content
+    newTab.filePath = filePath
     setTabs((prevTabs) => [...prevTabs, newTab])
     setActiveTab(newTab.value)
   }, [])
@@ -79,7 +85,8 @@ export default function Memo(): JSX.Element {
   )
 
   const saveMemo = useCallback(async (): Promise<void> => {
-    const currentPane = tabsRef.current.find((tab) => tab.value === activeTab)
+    const currentActiveTab = activeTabRef.current
+    const currentPane = tabsRef.current.find((tab) => tab.value === currentActiveTab)
     if (currentPane) {
       const markdownContent = htmlToMarkdown(currentPane.content)
       const savedFilePath = await window.electronAPI.saveFile(markdownContent, currentPane.filePath)
@@ -92,7 +99,7 @@ export default function Memo(): JSX.Element {
         )
       }
     }
-  }, [activeTab])
+  }, [])
 
   const handleFileOpen = useCallback(
     (_e: Electron.IpcRendererEvent, filePath: string, data: string): void => {
@@ -128,7 +135,7 @@ export default function Memo(): JSX.Element {
       window.electronAPI.removeNewTabRequestListener(handleNewTabRequest)
       window.electronAPI.removeFileOpenListener(handleFileOpenRequest)
     }
-  }, [saveMemo, addTab, handleFileOpen])
+  }, [addTab, handleFileOpen, saveMemo])
 
   return (
     <div>
